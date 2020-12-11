@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import './App.css';
+import person from './Person/Person';
 import Person from './Person/Person';
 
 class App extends Component {
@@ -9,10 +10,11 @@ class App extends Component {
   // Initial state
   state = {
     persons : [
-      { name: 'gopal', age: 29},
-      { name: 'Manu', age: 28},
-      { name: 'Stephanie', age: 26}   
-    ]
+      { id: 'gopal1',  name: 'gopal', age: 29},
+      { id: 'manu1',  name: 'Manu', age: 28},
+      { id: 'step1', name: 'Stephanie', age: 26}   
+    ],
+    showPersons : false
   };
 
   //when you call the method with out arguments, don't add paranthesis, the function immediately called.
@@ -32,19 +34,44 @@ class App extends Component {
     )
   }
 
-  nameChangedHandler = (event) => {
+  nameChangedHandler = (event, id) => {
     //console.log('The handler is clicked !');
     //Dont change the state like this    this.state.persons[0].name = 'Gopalrao Padisala';
 
+    const personIndex = this.state.persons.findIndex(p => {
+      return p.id === id;
+    });
+
+    const thisPerson = {
+      ...this.state.persons[personIndex]
+    }; // copy the object to new person instance.
+
+    thisPerson.name = event.target.value; // set the value from text input
+
+    //get copy of persons
+    const persons = [...this.state.persons];
+    persons[personIndex] = thisPerson;
+
     //change the state
-    this.setState({
-      persons : [
-        { name: 'Gopal', age: 40},
-        { name: event.target.value, age: 31},
-        { name: 'Stephanie1', age: 28}   
-      ]
-    }
+    this.setState({persons : persons}
     )
+  }
+
+
+  deletePersonHandler = (index) =>{
+    //const persons = this.state.persons; // refers to the original array.
+    // we can also use slice to copy the elements to new array const persons = this.state.persons.slice()
+    const persons = [...this.state.persons];  //modern: spread operator copies the elements from old array to new array.
+    persons.splice(index, 1); // delete one element from index     it is sPlice  not slice 
+    this.setState({persons : persons}) // assing the updated persons array to persons object in state again
+  }
+
+  togglePersonsHandler = () => {
+    const doesShow = this.state.showPersons;
+    this.setState({
+      showPersons : !doesShow
+    })
+
   }
 
 
@@ -63,25 +90,37 @@ class App extends Component {
       cursor: 'pointer'
     };
 
+    let persons = null;
+
+    if(this.state.showPersons){
+      persons = (
+          <div>
+            {
+              this.state.persons.map((person, index) => {   // map function can receive person object and its index 
+                return <Person 
+                  name={person.name} 
+                  age={person.age} 
+                  key={person.id}  // we need key property in the list to identify the record in list uniquely.
+                  click={() => this.deletePersonHandler(index)}  // () => function(arguments)
+                  changed = {(event) => this.nameChangedHandler(event, person.id)}
+                />
+              })
+            }
+          </div>
+      )
+
+    }
+
     return (
       <div className="App">
         <h1>Hi, I'm a React App</h1>
         <p>This is really working!</p>
         <button 
           style={style}
-          onClick={() => this.switchNameHandler('GopalPadisala!!!')}>Switch Name
+          onClick={this.togglePersonsHandler}>Switch Name
         </button>
-        <Person 
-          name = {this.state.persons[0].name} 
-          age = {this.state.persons[0].age} />
-        <Person 
-          name = {this.state.persons[1].name} 
-          age = {this.state.persons[1].age} 
-          click = {this.switchNameHandler.bind(this, 'abcdes')}
-          changed = {this.nameChangedHandler} >My Hobbies Racing!</Person>
-        <Person 
-          name = {this.state.persons[2].name} 
-          age = {this.state.persons[2].age} />
+        {persons} 
+
       </div>      
     );
 
